@@ -1,0 +1,10 @@
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/bin/Debug/netcoreapp2.0/GraphProj.deps.json
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/bin/Debug/netcoreapp2.0/GraphProj.runtimeconfig.json
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/bin/Debug/netcoreapp2.0/GraphProj.runtimeconfig.dev.json
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/bin/Debug/netcoreapp2.0/GraphProj.dll
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/bin/Debug/netcoreapp2.0/GraphProj.pdb
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.csproj.CoreCompileInputs.cache
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.AssemblyInfoInputs.cache
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.AssemblyInfo.cs
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.dll
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.pdb
