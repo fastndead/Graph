@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.Metadata;
+using System.Linq;
 
 namespace GraphProj
 {
@@ -14,51 +14,49 @@ namespace GraphProj
             Dictionary<int, List<int>> MainGraph = new Dictionary<int, List<int>>();
         }
 
-        public Graph(FileStream input)
+        public Graph(Stream input)
         {
-            StreamReader inputStream = new StreamReader(input);
+            var inputStream = new StreamReader(input);
             while (!inputStream.EndOfStream)
             {
-                string line = inputStream.ReadLine();
-                var str = line.Split(":");
-                var key = int.Parse(str[0]);
-                var kidsStrings = str[1].Trim().Split(" ");
-                var kids = new List<int>();
-                if (!MainGraph.ContainsKey(key))
+                try
                 {
-                    try
+                    var line = inputStream.ReadLine();
+                    var str = line.Split(":");
+                    var key = int.Parse(str[0]);
+                    var kidsStrings = str[1].Trim().Split(" ");
+                    var kids = new List<int>();
+                    if (!MainGraph.ContainsKey(key))
                     {
-                        foreach (var t in kidsStrings)
+                        kids.AddRange(kidsStrings.Select(int.Parse));
+                        MainGraph.Add(key, kids);
+                        foreach (var kid in kids)
                         {
-                            kids.Add(int.Parse(t));
+                            if (!MainGraph.ContainsKey(kid))
+                            {
+                                MainGraph.Add(kid,new List<int>());
+                            }
                         }
                     }
-                    catch (Exception e)
+                    else
                     {
-                        Console.WriteLine("ERROR: " + e);
-                        return;
-                    }
-                    
-                    MainGraph.Add(key, kids);
-                }
-                else
-                {
-                    try
-                    {
-                        foreach (var t in kidsStrings)
+                        kids.AddRange(kidsStrings.Select(int.Parse));
+                        MainGraph[key].AddRange(kids);
+                        foreach (var kid in kids)
                         {
-                            kids.Add(int.Parse(t));
+                            if (!MainGraph.ContainsKey(kid))
+                            {
+                                MainGraph.Add(kid,new List<int>());
+                            }
                         }
                     }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("ERROR: " + e);
-                        return;
-                    }
-                    MainGraph[key].AddRange(kids);
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine("ERROR: " + e);
+                    return;
+                }   
             }
-            
         }
 
         public Graph(Graph graph)
@@ -118,6 +116,18 @@ namespace GraphProj
         public void Add(int key, List<int> kids)
         {
             MainGraph.Add(key, kids);
+        }
+
+        public int GetNodeDegree(int key)
+        {
+            if (MainGraph.ContainsKey(key))
+            {
+                return MainGraph[key].Count;
+            }
+            else
+            {
+                throw new Exception("There's No Such key. GetNodeDegree() ERROR");
+            }
         }
 
         public void Delete(int key)
