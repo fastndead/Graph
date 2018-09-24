@@ -7,11 +7,11 @@ namespace GraphProj
 {
     public class Graph
     {
-        private Dictionary<int, List<int>> MainGraph = new Dictionary<int, List<int>>();
+        private Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
 
         public Graph()
         {
-            Dictionary<int, List<int>> MainGraph = new Dictionary<int, List<int>>();
+            Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
         }
 
         public Graph(Stream input)
@@ -25,28 +25,28 @@ namespace GraphProj
                     var str = line.Split(":");
                     var key = int.Parse(str[0]);
                     var kidsStrings = str[1].Trim().Split(" ");
-                    var kids = new List<int>();
+                    var kids = new HashSet<int>();
                     if (!MainGraph.ContainsKey(key))
                     {
-                        kids.AddRange(kidsStrings.Select(int.Parse));
+                        kids.UnionWith(kidsStrings.Select(int.Parse));
                         MainGraph.Add(key, kids);
                         foreach (var kid in kids)
                         {
                             if (!MainGraph.ContainsKey(kid))
                             {
-                                MainGraph.Add(kid,new List<int>());
+                                MainGraph.Add(kid,new HashSet<int>());
                             }
                         }
                     }
                     else
                     {
-                        kids.AddRange(kidsStrings.Select(int.Parse));
-                        MainGraph[key].AddRange(kids);
+                        kids.UnionWith(kidsStrings.Select(int.Parse));
+                        MainGraph[key].UnionWith(kids);
                         foreach (var kid in kids)
                         {
                             if (!MainGraph.ContainsKey(kid))
                             {
-                                MainGraph.Add(kid,new List<int>());
+                                MainGraph.Add(kid,new HashSet<int>());
                             }
                         }
                     }
@@ -61,17 +61,17 @@ namespace GraphProj
 
         public Graph(Graph graph)
         {
-            this.MainGraph = new Dictionary<int, List<int>>();
+            this.MainGraph = new Dictionary<int, HashSet<int>>();
             var initialGraph = graph.GetGraph();
             foreach (var item in initialGraph)
             {
-                var list = new List<int>();
-                list.AddRange(item.Value);
+                var list = new HashSet<int>();
+                list.UnionWith(item.Value);
                 MainGraph.Add(item.Key, list);
             }
         }
 
-        private Dictionary<int, List<int>> GetGraph()
+        private Dictionary<int, HashSet<int>> GetGraph()
         {
             return MainGraph;
         }
@@ -88,12 +88,27 @@ namespace GraphProj
                 Console.WriteLine();
             }
         }
+        
+        public List<int> GetNotConnectedNodes(int key)
+        {
+            if(!MainGraph.ContainsKey(key)) throw new Exception("There's No Such key. GetNotConnectedNodes() ERROR");
+            var retVal = new List<int>();
+            foreach (var item in MainGraph)
+            {
+                if (!item.Value.Contains(item.Key) && item.Key != key)
+                {
+                    retVal.Add(item.Key);
+                }
+            }
+
+            return retVal;
+        }
 
         public void AddConnection(int key, params int[] kids)
         {
             if (MainGraph.ContainsKey(key))
             {
-                MainGraph[key].AddRange(kids);
+                MainGraph[key].UnionWith(kids);
             }
             else
             {
@@ -113,7 +128,7 @@ namespace GraphProj
             }
         }
 
-        public void Add(int key, List<int> kids)
+        public void Add(int key, HashSet<int> kids)
         {
             MainGraph.Add(key, kids);
         }
@@ -128,6 +143,11 @@ namespace GraphProj
             {
                 throw new Exception("There's No Such key. GetNodeDegree() ERROR");
             }
+        }
+
+        public HashSet<int> GetNotConnected()
+        {
+            return null;
         }
 
         public void Delete(int key)

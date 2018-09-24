@@ -18,6 +18,8 @@ namespace GraphProj
             try
             {
                 Console.WriteLine("Degree of this key = " + gr.GetNodeDegree(key));
+                Console.WriteLine("Not Connected Nodes: ");
+                gr.GetNotConnectedNodes(key).ForEach(t => Console.Write(t + " "));
             }
             catch (Exception e)
             {
