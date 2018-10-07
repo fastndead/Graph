@@ -8,3 +8,4 @@
 /Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.AssemblyInfo.cs
 /Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.dll
 /Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.pdb
+/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/Debug/netcoreapp2.0/GraphProj.csprojAssemblyReference.cache

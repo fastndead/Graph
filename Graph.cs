@@ -8,58 +8,44 @@ namespace GraphProj
     public class Graph
     {
         private Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
+        private bool directed;
 
         public Graph()
         {
             Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
+            directed = false;
         }
 
-        public Graph(Stream input)
+        public Graph(Stream input, bool directed)
         {
+            this.directed = directed;
             var inputStream = new StreamReader(input);
             while (!inputStream.EndOfStream)
             {
-                try
-                {
-                    var line = inputStream.ReadLine();
-                    var str = line.Split(":");
-                    var key = int.Parse(str[0]);
-                    var kidsStrings = str[1].Trim().Split(" ");
-                    var kids = new HashSet<int>();
-                    if (!MainGraph.ContainsKey(key))
-                    {
-                        kids.UnionWith(kidsStrings.Select(int.Parse));
-                        MainGraph.Add(key, kids);
-                        foreach (var kid in kids)
-                        {
-                            if (!MainGraph.ContainsKey(kid))
-                            {
-                                MainGraph.Add(kid,new HashSet<int>());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        kids.UnionWith(kidsStrings.Select(int.Parse));
-                        MainGraph[key].UnionWith(kids);
-                        foreach (var kid in kids)
-                        {
-                            if (!MainGraph.ContainsKey(kid))
-                            {
-                                MainGraph.Add(kid,new HashSet<int>());
-                            }
-                        }
-                    }
+                var line = inputStream.ReadLine();                              //считывание строки
+                var str = line.Split(":");                                      //разделение строки на узел и связи
+                var key = int.Parse(str[0]);                                    //получение значения узла
+                var kidsStrings = str[1].Trim().Split(" ");                     //получение значений связей в виде 
+                                                                                    //строк                                                      
+                var kids = new HashSet<int>();                                  //инициализация экземпляра Hashset 
+                                                                                    //для связей                                                    
+                if (!MainGraph.ContainsKey(key))                                //если в графе не имеется такой узел
+                {                                                              
+                    kids.UnionWith(kidsStrings.Select(int.Parse));              //заполняем kids связями
+                    MainGraph.Add(key, kids);                                   //добавляем в граф
+                    this.AddConnection(key, kids);                            
+                }                                                              
+                else                                                            //если в графе имеется такой узел
+                {                                                              
+                    kids.UnionWith(kidsStrings.Select(int.Parse));              //заполняем kids связми
+                    MainGraph[key].UnionWith(kids);                             //добавляем kids к существующему узлу
+                    this.AddConnection(key, kids);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("ERROR: " + e);
-                    return;
-                }   
             }
         }
+         
 
-        public Graph(Graph graph)
+        public Graph(Graph graph)                                       
         {
             this.MainGraph = new Dictionary<int, HashSet<int>>();
             var initialGraph = graph.GetGraph();
@@ -89,38 +75,32 @@ namespace GraphProj
             }
         }
         
-        public List<int> GetNotConnectedNodes(int key)
-        {
-            if(!MainGraph.ContainsKey(key)) throw new Exception("There's No Such key. GetNotConnectedNodes() ERROR");
-            var retVal = new List<int>();
-            foreach (var item in MainGraph)
-            {
-                if (!item.Value.Contains(item.Key) && item.Key != key)
-                {
-                    retVal.Add(item.Key);
-                }
-            }
-
-            return retVal;
-        }
 
         public void AddConnection(int key, params int[] kids)
         {
             if (MainGraph.ContainsKey(key))
             {
                 MainGraph[key].UnionWith(kids);
+                this.AddConnection(key, kids);
             }
             else
             {
                 throw new Exception("There's No Such key. AddConnection() ERROR");
             }
+          
+
         }
+
 
         public void DeleteConnection(int key, int connectedKey)
         {
             if (MainGraph.ContainsKey(key))
             {
-                MainGraph[key].Add(connectedKey);
+                MainGraph[key].Remove(connectedKey);
+                if (directed == false)
+                {
+                    MainGraph[connectedKey].Remove(key);
+                }
             }
             else
             {
@@ -131,6 +111,29 @@ namespace GraphProj
         public void Add(int key, HashSet<int> kids)
         {
             MainGraph.Add(key, kids);
+            this.AddConnection(key, kids);
+        }
+
+        private void AddConnection(int key, ICollection<int> kids)
+        {
+            foreach (var kid in kids)
+            {
+                if (!MainGraph.ContainsKey(kid) && directed == false)           //если граф не ориентированный,
+                                                                                //то все связи работают в обе стороны
+                {
+                    var temp = new HashSet<int>();
+                    temp.Add(key);
+                    MainGraph.Add(kid, temp);
+                }
+                else if (MainGraph.ContainsKey(kid) && directed == false)
+                {
+                    MainGraph[kid].Add(key);
+                }
+                else if (!MainGraph.ContainsKey(kid) && directed == true)
+                {
+                    MainGraph.Add(kid, new HashSet<int>());
+                }
+            }
         }
 
         public int GetNodeDegree(int key)
@@ -145,9 +148,18 @@ namespace GraphProj
             }
         }
 
-        public HashSet<int> GetNotConnected()
+        public HashSet<int> GetNotConnected(int inputKey)
         {
-            return null;
+            var ret = new HashSet<int>();
+            var keyKids = MainGraph[inputKey];
+            foreach (var item in MainGraph)
+            {
+                if (!keyKids.Contains(item.Key) && item.Key != inputKey)
+                {
+                    ret.Add(item.Key);
+                }
+            }
+            return ret;
         }
 
         public void Delete(int key)
@@ -155,6 +167,10 @@ namespace GraphProj
             if (MainGraph.ContainsKey(key))
             {
                 MainGraph.Remove(key);
+                foreach (var item in MainGraph)
+                {
+                    item.Value.Remove(key);
+                }
             }
             else
             {
