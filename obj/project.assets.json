@@ -674,7 +674,7 @@
       "projectName": "GraphProj",
       "projectPath": "/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/GraphProj.csproj",
       "packagesPath": "/Users/ASMANandNASTYA/.nuget/packages/",
-      "outputPath": "/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj",
+      "outputPath": "/Users/ASMANandNASTYA/Projects/Графы/GraphProj/GraphProj/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
@@ -705,7 +705,7 @@
           "Microsoft.NETCore.App": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "2.0",
+            "version": "[2.0.0, )",
             "autoReferenced": true
           }
         },

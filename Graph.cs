@@ -7,17 +7,18 @@ namespace GraphProj
 {
     public class Graph
     {
-        private Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
+        private Dictionary<int, HashSet<int>> MainGraph;
         private bool directed;
 
         public Graph()
         {
-            Dictionary<int, HashSet<int>> MainGraph = new Dictionary<int, HashSet<int>>();
+            this.MainGraph = new Dictionary<int, HashSet<int>>();
             directed = false;
         }
 
         public Graph(Stream input, bool directed)
         {
+            this.MainGraph = new Dictionary<int, HashSet<int>>();
             this.directed = directed;
             var inputStream = new StreamReader(input);
             while (!inputStream.EndOfStream)
@@ -87,10 +88,7 @@ namespace GraphProj
             {
                 throw new Exception("There's No Such key. AddConnection() ERROR");
             }
-          
-
         }
-
 
         public void DeleteConnection(int key, int connectedKey)
         {
@@ -154,7 +152,7 @@ namespace GraphProj
             var keyKids = MainGraph[inputKey];
             foreach (var item in MainGraph)
             {
-                if (!keyKids.Contains(item.Key) && item.Key != inputKey)
+                if (!keyKids.Contains(item.Key) && item.Key != inputKey && !item.Value.Contains(inputKey))
                 {
                     ret.Add(item.Key);
                 }
@@ -178,6 +176,45 @@ namespace GraphProj
             }
             
         }
-        
+
+        public static bool operator ==(Graph a, Graph b)
+        {
+            if (a.GetGraph().Keys.Count != b.GetGraph().Keys.Count)
+            {
+                return false;
+            }
+            else
+            {
+                var aSorted = a.GetGraph().OrderBy(item => item.Value.Count).ToList();
+                var bSorted = b.GetGraph().OrderBy(item => item.Value.Count).ToList();
+                
+                for (int i = 0; i < a.GetGraph().Keys.Count; i++)
+                {
+                    if (aSorted[i].Value.Count != bSorted[i].Value.Count)
+                        return false;
+                }
+                return true;
+            }
+        }
+        public static bool operator !=(Graph a, Graph b)
+        {
+            if (a.GetGraph().Keys.Count != b.GetGraph().Keys.Count)
+            {
+                return true;
+            }
+            else
+            {
+                var aSorted = a.GetGraph().OrderBy(item => item.Value.Count).ToList();
+                var bSorted = b.GetGraph().OrderBy(item => item.Value.Count).ToList();
+                
+                for (int i = 0; i < a.GetGraph().Keys.Count; i++)
+                {
+                    if (aSorted[i].Value.Count != bSorted[i].Value.Count)
+                        return true;
+                }
+                return false;
+            }
+        }
+
     }
 }

@@ -8,25 +8,33 @@ namespace GraphProj
     {
         static void Main(string[] args)
         {
-            var fs = new FileStream("input.txt", FileMode.OpenOrCreate);
-            var gr = new Graph(fs, true); 
+            var fs = new FileStream("input.txt", FileMode.Open);
+            var gr = new Graph(fs, false);
+            Console.WriteLine("FIRST");
             gr.Print();
+            
+            Console.WriteLine("SECOND");
+            var fs1 = new FileStream("input1.txt", FileMode.Open);
+            var gr1 = new Graph(fs1, false);
+            gr1.Print();
+          
+//            Console.WriteLine();
+//            Console.Write("Enter the key: ");
+//            var key = int.Parse(Console.ReadLine());
+//            
+//            Console.WriteLine("Degree of this key = " + gr.GetNodeDegree(key));
+//
+//            Console.Write("Not connected nodes : ");
+//            Console.WriteLine(string.Join(" ", gr.GetNotConnected(key)));
 
-            Console.WriteLine();
-            Console.Write("Enter the key: ");
-            var key = int.Parse(Console.ReadLine());
-            try
+            if (gr == gr1)
             {
-                Console.WriteLine("Degree of this key = " + gr.GetNodeDegree(key));
+                Console.WriteLine("РАВНЫ!");
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine(e);
-                throw;
+                Console.WriteLine("НЕ РАВНЫ");
             }
-
-            Console.Write("Not connected nodes : ");
-            Console.WriteLine(string.Join(" ", gr.GetNotConnected(key)));
         }
     }
 }
