@@ -26,8 +26,13 @@ namespace GraphProj
                 var line = inputStream.ReadLine();                              //считывание строки
                 var str = line.Split(":");                                      //разделение строки на узел и связи
                 var key = int.Parse(str[0]);                                    //получение значения узла
+
+                if (str[1].Trim() == "")
+                {
+                    continue;
+                }
                 var kidsStrings = str[1].Trim().Split(" ");                     //получение значений связей в виде 
-                                                                                    //строк                                                      
+                                                                                    //строк 
                 var kids = new HashSet<int>();                                  //инициализация экземпляра Hashset 
                                                                                     //для связей                                                    
                 if (!MainGraph.ContainsKey(key))                                //если в графе не имеется такой узел
@@ -213,6 +218,54 @@ namespace GraphProj
                         return true;
                 }
                 return false;
+            }
+        }
+
+        public List<KeyValuePair<int, int>> FindMaxPaths(int key)
+        {
+            if (!MainGraph.ContainsKey(key))
+                throw new Exception("There's no such key. FindMaxPaths() ERROR");
+
+            var returnValue = new List<KeyValuePair<int,int>>();
+
+            var visited = new Dictionary<int,bool>();
+            foreach (var graphKey in MainGraph.Keys)
+            {
+                visited.Add(graphKey, false);
+            }
+            
+            foreach (var graphKey in MainGraph.Keys)
+            {
+                if (graphKey == key)
+                    continue;
+
+                int pathCount = 0;
+                findMaxPath(key, graphKey, visited, ref pathCount);
+                returnValue.Add(new KeyValuePair<int, int>(graphKey, pathCount));
+            }
+
+            return returnValue;
+            
+            void findMaxPath(int startKey, int endKey, Dictionary<int,bool> Visited, ref int pathCount)
+            {
+                Visited[startKey] = true;
+
+                if (startKey == endKey)
+                {
+                    pathCount++;
+                }
+                else
+                {
+                    foreach (var temp in MainGraph[startKey])
+                    {
+                        if (!Visited[temp])
+                        {
+                            findMaxPath(temp, endKey, Visited, ref pathCount);
+                        }
+                    }
+                }
+
+                Visited[startKey] = false;
             }
         }
 
