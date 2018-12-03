@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 
@@ -330,5 +331,63 @@ namespace GraphProj
             }
         }
 
+        public int FindMinPathCount(int startKey, int endKey)
+        {
+            if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
+                throw new Exception("There's no such key. FindMinPathCount() ERROR");
+
+
+            var distTo = new Dictionary<int,int>();
+
+            foreach (var value in MainGraph)
+            {
+                distTo.Add(value.Key, -1);
+            }
+            
+            
+            return Bfs(startKey);
+
+            int Bfs(int s)
+            {
+                var minPath = 0;
+                var pathCount = 0;
+                var queue = new Queue<int>();
+                queue.Enqueue(s);
+                distTo[s] = 0;
+
+                while (queue.Count != 0)
+                {
+                    var v = queue.Dequeue();
+
+                    foreach (var w in MainGraph[v])
+                    {
+                        if (distTo[w] == -1)
+                        {
+                            if (minPath == 0 || distTo[v] < minPath)
+                            {
+                                queue.Enqueue(w);       
+                            }
+                            
+                            pathCount++;
+                            distTo[w] = distTo[v] + 1;
+                            
+                            if (w == endKey)
+                            {
+                                if (minPath == 0)
+                                {
+                                    minPath = distTo[endKey];
+                                }
+                                else if(minPath > distTo[endKey])
+                                {
+                                    minPath = distTo[endKey];
+                                }   
+                            }
+                        }
+                    }
+                }
+
+                return minPath;
+            }
+        }
     }
 }

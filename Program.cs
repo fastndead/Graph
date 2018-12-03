@@ -13,9 +13,10 @@ namespace GraphProj
 
             Console.Write("Enter start Key: "); int startKey = int.Parse(Console.ReadLine());
             Console.Write("Enter end Key: "); int endKey = int.Parse(Console.ReadLine());
-            var minPath = gr.FindMinPathCount(startKey,endKey);
+            Console.WriteLine(gr.FindMinPathCount(startKey,endKey));
+            
 
-            Console.WriteLine("Min Path between {0} and {1} = {2}",startKey,endKey,minPath);
+           // Console.WriteLine("Min Path between {0} and {1} = {2}",startKey,endKey,minPath);
         }
     }
 }
