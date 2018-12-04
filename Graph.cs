@@ -274,64 +274,7 @@ namespace GraphProj
             }
         }
         
-        public int FindMinPathCount(int startKey, int endKey)
-        {
-            if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
-                throw new Exception("There's no such key. FindMaxPaths() ERROR");
-
-            var pathCount = 0;
-            var minPath = 0;
-            var visited = new Dictionary<int,bool>();
-            foreach (var graphKey in MainGraph.Keys)
-            {
-                visited.Add(graphKey, false);
-            }
-            
-            findMinPathCount(startKey, endKey, visited, ref pathCount, ref minPath);
-            if (minPath == 0)
-            {
-                throw new Exception("There's no single path from " + startKey + " to" + endKey);
-            }
-            return minPath;
-            
-            
-
-            void findMinPathCount(int start, int end, Dictionary<int,bool> Visited, ref int paths, ref int minPaths)
-            {
-
-                Visited[start] = true;
-
-                if (start == end)
-                {
-                    if (minPaths == 0)
-                    {
-                        minPaths = paths;
-                    }
-                    else
-                    {
-                        if (paths < minPaths)
-                        {
-                            minPaths = paths;
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var temp in MainGraph[start])
-                    {
-                        if (!Visited[temp])
-                        {
-                            paths++;
-                            findMinPathCount(temp, end, Visited, ref paths, ref minPaths);
-                        }
-                    }
-                }
-                paths--;
-                Visited[start] = false;
-            }
-        }
-
-        public int FindMinPathCount(int startKey, int endKey)
+    public int FindMinPathCount(int startKey, int endKey)
         {
             if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
                 throw new Exception("There's no such key. FindMinPathCount() ERROR");
