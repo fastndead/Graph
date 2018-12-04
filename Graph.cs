@@ -351,6 +351,7 @@ namespace GraphProj
             {
                 var minPath = 0;
                 var pathCount = 0;
+                
                 var queue = new Queue<int>();
                 queue.Enqueue(s);
                 distTo[s] = 0;
