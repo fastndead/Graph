@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -8,18 +8,18 @@ namespace GraphProj
 {
     public class Graph
     {
-        private Dictionary<int, HashSet<int>> MainGraph;
+        private Dictionary<int, Dictionary<int, int>> MainGraph;
         private bool directed;
 
         public Graph()
         {
-            this.MainGraph = new Dictionary<int, HashSet<int>>();
+            this.MainGraph = new Dictionary<int, Dictionary<int, int>>();
             directed = false;
         }
 
         public Graph(Stream input, bool directed)
         {
-            this.MainGraph = new Dictionary<int, HashSet<int>>();
+            this.MainGraph = new Dictionary<int, Dictionary<int, int>>();
             this.directed = directed;
             var inputStream = new StreamReader(input);
             while (!inputStream.EndOfStream)
@@ -32,24 +32,33 @@ namespace GraphProj
                 {
                     if(!MainGraph.ContainsKey(key))
                     {
-                        MainGraph.Add(key, new HashSet<int>());
+                        MainGraph.Add(key, new Dictionary<int, int>());
                     }
                     continue;
                 }
                 var kidsStrings = str[1].Trim().Split(" ");                     //получение значений связей в виде 
                                                                                 //строк 
-                var kids = new HashSet<int>();                                  //инициализация экземпляра Hashset 
-                                                                                //для связей                                                    
+                var kids = new Dictionary<int, int>();                          //инициализация экземпляра Dictionary для связей                           
                 if (!MainGraph.ContainsKey(key))                                //если в графе не имеется такой узел
-                {                                                              
-                    kids.UnionWith(kidsStrings.Select(int.Parse));              //заполняем kids связями
+                {
+                    foreach (var kidsString in kidsStrings)
+                    {
+                        kids.Add(int.Parse(kidsString.Split("-")[0]), int.Parse(kidsString.Split("-")[1]));
+                    }                                                           //заполняем kids связями
                     MainGraph.Add(key, kids);                                   //добавляем в граф
                     this.AddConnection(key, kids);                            
                 }                                                              
                 else                                                            //если в графе имеется такой узел
                 {                                                              
-                    kids.UnionWith(kidsStrings.Select(int.Parse));              //заполняем kids связми
-                    MainGraph[key].UnionWith(kids);                             //добавляем kids к существующему узлу
+                    foreach (var kidsString in kidsStrings)
+                    {
+                        kids.Add(int.Parse(kidsString.Split("-")[0]), int.Parse(kidsString.Split("-")[1]));
+                    }                                                           //заполняем kids связми
+
+                    foreach (var kid in kids)
+                    {
+                        MainGraph[key].Add(kid.Key, kid.Value);                 //добавляем kids к существующему узлу
+                    }
                     this.AddConnection(key, kids);
                 }
             }
@@ -58,17 +67,17 @@ namespace GraphProj
 
         public Graph(Graph graph)                                       
         {
-            this.MainGraph = new Dictionary<int, HashSet<int>>();
+            this.MainGraph = new Dictionary<int, Dictionary<int,int>>();
             var initialGraph = graph.GetGraph();
             foreach (var item in initialGraph)
             {
-                var list = new HashSet<int>();
-                list.UnionWith(item.Value);
+                var list = new Dictionary<int,int>();
+                list.Union(item.Value);
                 MainGraph.Add(item.Key, list);
             }
         }
 
-        private Dictionary<int, HashSet<int>> GetGraph()
+        private Dictionary<int, Dictionary<int,int>> GetGraph()
         {
             return MainGraph;
         }
@@ -87,19 +96,6 @@ namespace GraphProj
         }
         
 
-        public void AddConnection(int key, params int[] kids)
-        {
-            if (MainGraph.ContainsKey(key))
-            {
-                MainGraph[key].UnionWith(kids);
-                this.AddConnection(key, kids);
-            }
-            else
-            {
-                throw new Exception("There's No Such key. AddConnection() ERROR");
-            }
-        }
-
         public void DeleteConnection(int key, int connectedKey)
         {
             if (MainGraph.ContainsKey(key))
@@ -116,30 +112,31 @@ namespace GraphProj
             }
         }
 
-        public void Add(int key, HashSet<int> kids)
+        public void Add(int key, Dictionary<int,int> kids)
         {
             MainGraph.Add(key, kids);
             this.AddConnection(key, kids);
         }
 
-        private void AddConnection(int key, ICollection<int> kids)
+        private void AddConnection(int key, Dictionary<int,int> kids)
         {
             foreach (var kid in kids)
             {
-                if (!MainGraph.ContainsKey(kid) && directed == false)           //если граф не ориентированный,
+                if (!MainGraph.ContainsKey(kid.Key) && directed == false)       //если граф не ориентированный,
                                                                                 //то все связи работают в обе стороны
+                                                                               //и нужный ключ НЕ имеется в графе
                 {
-                    var temp = new HashSet<int>();
-                    temp.Add(key);
-                    MainGraph.Add(kid, temp);
+                    var temp = new Dictionary<int, int>();
+                    temp.Add(key, kid.Value);
+                    MainGraph.Add(kid.Key, temp);
                 }
-                else if (MainGraph.ContainsKey(kid) && directed == false)
+                else if (MainGraph.ContainsKey(kid.Key) && directed == false)    //елси граф не ориентированный и нужный ключ имеется в графе
                 {
-                    MainGraph[kid].Add(key);
+                    MainGraph[kid.Key].Add(key, kid.Value);
                 }
-                else if (!MainGraph.ContainsKey(kid) && directed == true)
+                else if (!MainGraph.ContainsKey(kid.Key) && directed == true)
                 {
-                    MainGraph.Add(kid, new HashSet<int>());
+                    MainGraph.Add(kid.Key, new Dictionary<int, int>());
                 }
             }
         }
@@ -162,7 +159,7 @@ namespace GraphProj
             var keyKids = MainGraph[inputKey];
             foreach (var item in MainGraph)
             {
-                if (!keyKids.Contains(item.Key) && item.Key != inputKey && !item.Value.Contains(inputKey))
+                if (!keyKids.ContainsKey(item.Key) && item.Key != inputKey && !item.Value.ContainsKey(inputKey))
                 {
                     ret.Add(item.Key);
                 }
@@ -263,9 +260,9 @@ namespace GraphProj
                 {
                     foreach (var temp in MainGraph[startKey])
                     {
-                        if (!Visited[temp])
+                        if (!Visited[temp.Key])
                         {
-                            findMaxPath(temp, endKey, Visited, ref pathCount);
+                            findMaxPath(temp.Key, endKey, Visited, ref pathCount);
                         }
                     }
                 }
@@ -305,17 +302,17 @@ namespace GraphProj
 
                     foreach (var w in MainGraph[v])
                     {
-                        if (distTo[w] == -1)
+                        if (distTo[w.Key] == -1)
                         {
                             if (minPath == 0 || distTo[v] < minPath)
                             {
-                                queue.Enqueue(w);       
+                                queue.Enqueue(w.Key);       
                             }
                             
                             pathCount++;
-                            distTo[w] = distTo[v] + 1;
+                            distTo[w.Key] = distTo[v] + 1;
                             
-                            if (w == endKey)
+                            if (w.Key == endKey)
                             {
                                 if (minPath == 0)
                                 {
@@ -332,6 +329,58 @@ namespace GraphProj
 
                 return minPath;
             }
+        }
+    public int FindMinPathWithWeights(int startKey, int endKey)
+        {
+            if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
+                throw new Exception("There's no such key. FindMinPathCount() ERROR");
+
+
+            var distTo = new Dictionary<int, int>();
+
+            foreach (var value in MainGraph)
+            {
+                distTo.Add(value.Key, int.MaxValue);
+            }
+
+            var visited = new Dictionary<int, bool>();
+            foreach (var graphKey in MainGraph.Keys)
+            {
+                visited.Add(graphKey, false);
+            }
+
+            var minPath = 0;
+
+            var queue = new Queue<int>();
+            queue.Enqueue(startKey);
+            distTo[startKey] = 0;
+
+            while (queue.Count != 0)
+            {
+                var v = queue.Dequeue();
+
+                if (visited[v])
+                {
+                    continue;
+                }
+
+                foreach (var node in MainGraph[v])
+                {
+                    if (distTo[node.Key] > node.Value + distTo[v])
+                    {
+
+                        distTo[node.Key] = node.Value + distTo[v];
+                    }
+
+                    queue.Enqueue(node.Key);
+
+                }
+
+                visited[v] = true;
+            }
+
+            return distTo[endKey];
+
         }
     }
 }
