@@ -1,8 +1,14 @@
 ﻿﻿using System;
-using System.Collections.Generic;
+ using System.Collections;
+ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
+ using System.Data;
+ using System.Diagnostics.Contracts;
+ using System.IO;
 using System.Linq;
+ using System.Net;
+ using System.Net.Http.Headers;
+ using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace GraphProj
 {
@@ -43,7 +49,7 @@ namespace GraphProj
                 {
                     foreach (var kidsString in kidsStrings)
                     {
-                        kids.Add(int.Parse(kidsString.Split("-")[0]), int.Parse(kidsString.Split("-")[1]));
+                        kids.Add(int.Parse(kidsString.Split(">")[0]), int.Parse(kidsString.Split(">")[1]));
                     }                                                           //заполняем kids связями
                     MainGraph.Add(key, kids);                                   //добавляем в граф
                     this.AddConnection(key, kids);                            
@@ -52,7 +58,7 @@ namespace GraphProj
                 {                                                              
                     foreach (var kidsString in kidsStrings)
                     {
-                        kids.Add(int.Parse(kidsString.Split("-")[0]), int.Parse(kidsString.Split("-")[1]));
+                        kids.Add(int.Parse(kidsString.Split(">")[0]), int.Parse(kidsString.Split(">")[1]));
                     }                                                           //заполняем kids связми
 
                     foreach (var kid in kids)
@@ -270,28 +276,28 @@ namespace GraphProj
                 Visited[startKey] = false;
             }
         }
-        
-    public int FindMinPathCount(int startKey, int endKey)
+
+        public int FindMinPathCount(int startKey, int endKey)
         {
             if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
                 throw new Exception("There's no such key. FindMinPathCount() ERROR");
 
 
-            var distTo = new Dictionary<int,int>();
+            var distTo = new Dictionary<int, int>();
 
             foreach (var value in MainGraph)
             {
                 distTo.Add(value.Key, -1);
             }
-            
-            
+
+
             return Bfs(startKey);
 
             int Bfs(int s)
             {
                 var minPath = 0;
                 var pathCount = 0;
-                
+
                 var queue = new Queue<int>();
                 queue.Enqueue(s);
                 distTo[s] = 0;
@@ -306,22 +312,22 @@ namespace GraphProj
                         {
                             if (minPath == 0 || distTo[v] < minPath)
                             {
-                                queue.Enqueue(w.Key);       
+                                queue.Enqueue(w.Key);
                             }
-                            
+
                             pathCount++;
                             distTo[w.Key] = distTo[v] + 1;
-                            
+
                             if (w.Key == endKey)
                             {
                                 if (minPath == 0)
                                 {
                                     minPath = distTo[endKey];
                                 }
-                                else if(minPath > distTo[endKey])
+                                else if (minPath > distTo[endKey])
                                 {
                                     minPath = distTo[endKey];
-                                }   
+                                }
                             }
                         }
                     }
@@ -330,7 +336,115 @@ namespace GraphProj
                 return minPath;
             }
         }
-    public int FindMinPathWithWeights(int startKey, int endKey)
+
+        public Dictionary<int,List<KeyValuePair<int,int>>> FindMinPathsWithWeights()
+        {
+
+            var retVal = new Dictionary<int, List<KeyValuePair<int,int>>>();
+            foreach (var node in MainGraph)
+            {
+                var retList = new List<KeyValuePair<int,int>>();
+                foreach (var anotherNode in MainGraph)
+                {
+                    if (anotherNode.Key == node.Key)
+                    {
+                        continue;
+                    }
+                    retList.Add(new KeyValuePair<int, int>(anotherNode.Key, FindMinPathWithWeights(node.Key,anotherNode.Key)));
+                }
+                retVal.Add(node.Key,retList);
+            }
+
+            return retVal;
+        }
+        
+        public void FindMinPathsWithWeightsPrint()
+        {
+
+            var retVal = new Dictionary<int, List<KeyValuePair<int,int>>>();
+            foreach (var node in MainGraph)
+            {
+                var retList = new List<KeyValuePair<int,int>>();
+                Console.WriteLine("Min paths for {0}", node.Key);
+                foreach (var anotherNode in MainGraph)
+                {
+                    if (anotherNode.Key == node.Key)
+                    {
+                        continue;
+                    }
+
+                    Console.WriteLine(node.Key+ " → " + anotherNode.Key + " = "+ FindMinPathWithWeights(node.Key,anotherNode.Key));
+                }
+                retVal.Add(node.Key,retList);
+            }
+        }
+
+        public int FindMinPathsWithWeightsFloid(int startKey, int endKey)
+        {
+            var A = new List<List<KeyValuePair<int,int>>>();
+            foreach (var node in MainGraph)
+            {
+                var temp = new List<KeyValuePair<int,int>>();
+                foreach (var conn in MainGraph)
+                {
+                    if (conn.Key != node.Key)
+                    {
+                        temp.Add(new KeyValuePair<int, int>(conn.Key, conn.Value.ContainsKey(node.Key) ? conn.Value[node.Key] : int.MaxValue));
+                    }
+                    else
+                    {
+                        temp.Add(new KeyValuePair<int, int>(conn.Key,0));
+                    }
+
+                }
+                A.Add(temp);
+            }
+
+            for (int k = 0; k < MainGraph.Count; k++)
+            {
+                for (int i = 0; i < MainGraph.Count; i++)
+                {
+                    for (int j = 0; j < MainGraph.Count; j++)
+                    {
+                        if (A[k][i].Value != int.MaxValue && A[j][k].Value != int.MaxValue)
+                        {
+                            if (A[k][i].Value + A[j][k].Value < A[j][i].Value)
+                            {
+                                A[j][i] = new KeyValuePair<int, int>(A[j][i].Key, A[k][i].Value + A[j][k].Value);
+                                    
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            var indexOfStartKey = 0;
+            foreach (var node in MainGraph)
+            {
+                if (node.Key == startKey)
+                    break;
+                indexOfStartKey++;
+            }
+
+            foreach (var row in A[indexOfStartKey])
+            {
+                if (row.Key == endKey)
+                {
+                    if (row.Value == int.MaxValue)
+                    {
+                        throw new Exception("There's no connection between nodes " + startKey + " and " + endKey);
+                    }
+                    return row.Value;
+                }
+            }
+            
+            throw new Exception("There's no such keys apparently");
+
+        }
+
+
+        public int FindMinPathWithWeights(int startKey, int endKey)
         {
             if (!MainGraph.ContainsKey(startKey) || !MainGraph.ContainsKey(endKey))
                 throw new Exception("There's no such key. FindMinPathCount() ERROR");
@@ -381,6 +495,188 @@ namespace GraphProj
 
             return distTo[endKey];
 
+        }
+
+
+        public int FindMaxFlow(int source, int sink)
+        {
+            var graphWithFlows = new Dictionary<int,Dictionary<int,KeyValuePair<int,int>>>();
+
+            foreach (var node in MainGraph)
+            {
+                var tempConns = new Dictionary<int, KeyValuePair<int, int>>();
+                foreach (var conn in node.Value)
+                {
+                    var tempFlows = new KeyValuePair<int, int>(conn.Value, 0);
+                    tempConns[conn.Key] = tempFlows;
+                }
+                graphWithFlows[node.Key] = tempConns;
+            }
+
+            var maxFlowStack = new Stack<int>();
+            var maxFlow = 0;
+
+            while (true)
+            {
+                bool foundAnyPath = false;
+                var changesStack = new Queue<KeyValuePair<List<int>, int>>();
+                foreach (var conn in graphWithFlows[source])
+                {
+                    if (conn.Value.Key == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        foundAnyPath = true;
+                        var dfs = DfsWithFlows(graphWithFlows, conn.Key);
+                        var tempKey = source;
+                        var minFlow = int.MaxValue;
+                        foreach (var edge in dfs)
+                        {
+                            if (graphWithFlows[tempKey][edge].Key < minFlow)
+                            {
+                                minFlow = graphWithFlows[tempKey][edge].Key;
+                            }
+
+                            tempKey = edge;
+                        }
+                        
+                        changesStack.Enqueue(new KeyValuePair<List<int>, int>(dfs,minFlow));
+                        maxFlowStack.Push(minFlow);
+                        break;
+                    }
+                }
+
+                if (changesStack.Count > 0)
+                {
+                    var tempKey1 = source;
+                    var changes = changesStack.Dequeue();
+                    foreach (var edge in changes.Key)
+                    {
+                        var keyValuePair = new KeyValuePair<int, int>(graphWithFlows[tempKey1][edge].Key - changes.Value, graphWithFlows[tempKey1][edge].Value + changes.Value);
+                        graphWithFlows[tempKey1][edge] = keyValuePair;
+                        tempKey1 = edge;
+                    }
+                }
+
+                if (!foundAnyPath)
+                {
+                    break;
+                }
+            }
+            while (maxFlowStack.Count > 0)
+            {
+                maxFlow += maxFlowStack.Pop();
+            }
+
+
+            List<int> DfsWithFlows(Dictionary<int,Dictionary<int,KeyValuePair<int,int>>> graph, int conn)
+            {
+                
+                var returnValue = new List<int>();
+
+                var visited = new Dictionary<int,bool>();
+                foreach (var graphKey in graph.Keys)
+                {
+                    visited.Add(graphKey, false);
+                }
+            
+                foreach (var con in graph[source])
+                {
+                    if (con.Key != conn)
+                        continue;
+
+                    returnValue.Add(conn);
+                    FindMaxPath(con.Key, sink, visited);
+                }
+
+                return returnValue;
+            
+                void FindMaxPath(int startKey, int endKey, Dictionary<int,bool> Visited)
+                {
+                    Visited[startKey] = true;
+
+                    if (startKey == endKey)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        bool goBack = false;
+                        foreach (var temp in graph[startKey])
+                        {
+                            goBack = true;
+                            if (!Visited[temp.Key] && temp.Value.Key != 0)
+                            {
+                                goBack = false;
+                                returnValue.Add(temp.Key);
+                                FindMaxPath(temp.Key, endKey, Visited);
+                                return;
+                            }
+                        }
+
+                        if (goBack)
+                        {
+                            returnValue.Add(-graph[startKey][endKey].Key);
+                        }
+                    }
+                    Visited[startKey] = false;
+                }
+            }
+
+            return maxFlow;
+        }
+        
+        
+        public void Prims()
+        {
+            if (directed)
+            {
+                throw new Exception("Graph must not be directed!");
+            }
+
+            var retVal = new List<KeyValuePair<int, int>>();
+
+            var visited = new Dictionary<int,bool>();
+            foreach (var graphKey in MainGraph.Keys)
+            {
+                visited.Add(graphKey, false);
+            }
+            
+            List<int> current = new List<int>{MainGraph.Keys.ToList()[0]};
+            visited[MainGraph.Keys.ToList()[0]] = true;
+            for (int i = 0; i < MainGraph.Count-1; i++)
+            {
+                var minWeight = int.MaxValue;
+                var minNode = int.MaxValue;
+                var minSource = int.MaxValue;
+                foreach (var node in current)
+                {
+                    foreach (var con in MainGraph[node])
+                    {
+                        if (visited[con.Key])
+                        {
+                            continue;
+                        }
+                        if (con.Value < minWeight)
+                        {
+                            minNode = con.Key;
+                            minWeight = con.Value;
+                            minSource = node;
+                        }
+                    }
+                }   
+                visited[minNode] = true;
+                retVal.Add(new KeyValuePair<int, int>(minSource, minNode));
+                current.Add(minNode);
+            }
+            
+            Console.WriteLine("Spanning tree:");
+            foreach (var pathPart in retVal)
+            {
+                Console.WriteLine(pathPart.Key + " - " + pathPart.Value);
+            }
         }
     }
 }
